@@ -31,6 +31,19 @@ dependencies {
     implementation 'de.bethibande:jsql:1.0.0'
 }
 ```
+### Maven
+```xml
+<repository>
+    <id>de.bethibande</id>
+    <url>https://github.com/Bethibande/JSQL/raw/repository</url>
+</repository>
+
+<dependency>
+    <groupId>de.bethibande</groupId>
+    <artifactId>jsql</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
 ## Dependencies
  - JConnector 8.0.28
