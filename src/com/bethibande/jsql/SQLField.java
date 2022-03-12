@@ -9,7 +9,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface SQLField {
 
-    public SQLType type() default SQLType.VARCHAR;
-
+    public SQLType type() default SQLType.AUTO_DETECT;
+    public int size() default 0;
+    public boolean isKey() default false;
 
 }

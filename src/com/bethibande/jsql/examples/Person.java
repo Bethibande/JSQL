@@ -1,24 +1,24 @@
-package com.bethibande.jsql.test;
+package com.bethibande.jsql.examples;
 
 import com.bethibande.jsql.SQLField;
 import com.bethibande.jsql.SQLObject;
 
-public class TestObj extends SQLObject {
+public class Person extends SQLObject {
 
-    @SQLField
+    @SQLField(isKey = true)
     private String name;
     @SQLField
     private int age;
     @SQLField
+    private boolean adult;
+    @SQLField
     private Pet pet;
 
-    private String test;
-
-    public TestObj(String name, int age, Pet pet, String test) {
+    public Person(String name, int age, boolean adult, Pet pet) {
         this.name = name;
         this.age = age;
+        this.adult = adult;
         this.pet = pet;
-        this.test = test;
     }
 
     public void setName(String name) {
@@ -29,12 +29,12 @@ public class TestObj extends SQLObject {
         this.age = age;
     }
 
-    public void setPet(Pet pet) {
-        this.pet = pet;
+    public void setAdult(boolean adult) {
+        this.adult = adult;
     }
 
-    public void setTest(String test) {
-        this.test = test;
+    public void setPet(Pet pet) {
+        this.pet = pet;
     }
 
     public String getName() {
@@ -45,11 +45,11 @@ public class TestObj extends SQLObject {
         return age;
     }
 
-    public Pet getPet() {
-        return pet;
+    public boolean isAdult() {
+        return adult;
     }
 
-    public String getTest() {
-        return test;
+    public Pet getPet() {
+        return pet;
     }
 }

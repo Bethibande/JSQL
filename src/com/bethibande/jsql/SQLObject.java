@@ -2,24 +2,18 @@ package com.bethibande.jsql;
 
 public abstract class SQLObject {
 
-    private String table;
+    private transient SQLTable owner;
 
-    private JSQL owner;
-
-    /*public SQLObject(String table) {
-        this.table = table;
-    }*/
-
-    public void setOwner(JSQL jsql) {
-        this.owner = jsql;
+    public void setOwner(SQLTable db) {
+        this.owner = db;
     }
 
-    public JSQL getOwner() {
+    public SQLTable getOwner() {
         return this.owner;
     }
 
-    public String getTable() {
-        return this.table;
+    public void save() {
+        this.owner.saveItem(this);
     }
 
 }
