@@ -17,6 +17,21 @@ At the moment JSQL can only save the following java types
 ## Examples
 A simple example can be found [here](https://github.com/Bethibande/JSQL/tree/master/src/com/bethibande/jsql/examples)
 
+## Import
+Download jar [here](https://github.com/Bethibande/JSQL/blob/repository/de/bethibande/jsql/1.0.0/jsql-1.0.0.jar)
+### Gradle
+```gradle
+repositories {
+    mavenCentral()
+
+    maven { url "https://github.com/Bethibande/JSQL/raw/repository" }
+}
+
+dependencies {
+    implementation 'de.bethibande:jsql:1.0.0'
+}
+```
+
 ## Dependencies
  - JConnector 8.0.28
  - Gson (although only used in the examples classes -> Main.java)
