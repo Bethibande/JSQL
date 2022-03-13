@@ -10,6 +10,8 @@ import java.util.*;
  * A Class which represents a mysql connection to a certain database,
  * database may be changed whenever you fell like it, but keep in mind, this class
  * will not automatically switch between databases, if it's tables are in different databases
+ *
+ * !! important, the keys of SQLObjects may only have types compatible with mysql like String, int, boolean [...]
  */
 public class JSQL {
 

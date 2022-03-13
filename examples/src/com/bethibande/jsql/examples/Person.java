@@ -5,6 +5,9 @@ import com.bethibande.jsql.SQLObject;
 
 public class Person extends SQLObject {
 
+    /**
+     * !! keys may only be types compatible with mysql like String, int, boolean [...]
+     */
     @SQLField(isKey = true)
     private String name;
     @SQLField
