@@ -1,11 +1,14 @@
 package com.bethibande.jsql.fields;
 
+import com.bethibande.jsql.JSQL;
 import com.bethibande.jsql.SQLField;
 import com.bethibande.jsql.SQLObject;
-import com.bethibande.jsql.SQLType;
+import com.bethibande.jsql.types.FinalType;
+import com.bethibande.jsql.types.SQLType;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class SQLFields {
 
@@ -52,8 +55,9 @@ public class SQLFields {
 
     private String keyValue = null;
 
-    public void generate(Class<? extends SQLObject> objClass) {
+    public void generate(Class<? extends SQLObject> objClass, JSQL owner) {
         Field[] fields = objClass.getDeclaredFields();
+        LinkedList<SQLTypeAdapter> adapters = owner.getTypeAdapters();
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             field.setAccessible(true);
@@ -72,47 +76,19 @@ public class SQLFields {
                     isEnum = true;
                 }
 
-                if(type.equals(SQLType.AUTO_DETECT) && !isEnum) {
-                    Class<?> t = field.getType();
-                    // TODO: replace if statements with type adapters
-                    if(t == String.class) {
-                        type = SQLType.VARCHAR;
-                        size = SQLType.VARCHAR.getDefaultSize();
-                    }
-                    if(t == byte.class) {
-                        type = SQLType.TINYINT;
-                        size = SQLType.TINYINT.getDefaultSize();
-                    }
-                    if(t == short.class) {
-                        type = SQLType.SMALLINT;
-                        size = SQLType.SMALLINT.getDefaultSize();
-                    }
-                    if(t == int.class) {
-                        type = SQLType.VARCHAR;
-                        size = SQLType.VARCHAR.getDefaultSize();
-                    }
-                    if(t == float.class) {
-                        type = SQLType.VARCHAR;
-                        size = SQLType.VARCHAR.getDefaultSize();
-                    }
-                    if(t == double.class) {
-                        type = SQLType.VARCHAR;
-                        size = SQLType.VARCHAR.getDefaultSize();
-                    }
-                    if(t == long.class) {
-                        type = SQLType.VARCHAR;
-                        size = SQLType.VARCHAR.getDefaultSize();
-                    }
-                    if(t == char.class) {
-                        type = SQLType.VARCHAR;
-                        size = SQLType.VARCHAR.getDefaultSize();
-                    }
-                    if(t == boolean.class) {
-                        type = SQLType.VARCHAR;
-                        size = SQLType.VARCHAR.getDefaultSize();
-                    }
+                FinalType finalType = null;
+                for (int i1 = 0; i1 < adapters.size(); i1++) {
+                    SQLTypeAdapter a = adapters.get(i1);
+                    FinalType temp = a.translateType(field.getType(), type, size);
+                    if(temp != null) finalType = temp;
                 }
 
+                if(finalType != null) {
+                    type = finalType.getSqlType();
+                    size = finalType.getSize();
+                }
+
+                // in case the type is still AUTO_DETECT, which usually shouldn't be the case
                 if(type.equals(SQLType.AUTO_DETECT)) {
                     type = SQLType.VARCHAR;
                     size = SQLType.VARCHAR.getMaxSize();

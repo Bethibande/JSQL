@@ -1,9 +1,16 @@
 package com.bethibande.jsql;
 
-import java.sql.*;
-import java.util.HashMap;
-import java.util.Properties;
+import com.bethibande.jsql.fields.SQLTypeAdapter;
+import com.bethibande.jsql.fields.adapters.*;
 
+import java.sql.*;
+import java.util.*;
+
+/**
+ * A Class which represents a mysql connection to a certain database,
+ * database may be changed whenever you fell like it, but keep in mind, this class
+ * will not automatically switch between databases, if it's tables are in different databases
+ */
 public class JSQL {
 
     private boolean debug = false;
@@ -20,8 +27,54 @@ public class JSQL {
 
     private HashMap<Class<? extends SQLObject>, SQLTable<? extends SQLObject>> tables = new HashMap<>();
 
+    private LinkedList<SQLTypeAdapter> adapters = new LinkedList<>();
+
+
+    private void registerDefaultAdapters() {
+        adapters.add(new BooleanAdapter());
+        adapters.add(new ByteAdapter());
+        adapters.add(new CharAdapter());
+        adapters.add(new DoubleAdapter());
+        adapters.add(new FloatAdapter());
+        adapters.add(new IntAdapter());
+        adapters.add(new LongAdapter());
+        adapters.add(new ShortAdapter());
+        adapters.add(new StringAdapter());
+        adapters.add(new UUIDTypeAdapter());
+    }
+
     /**
-     * Register and initialize a new sql object/table
+     * @return all the currently registered type adapters
+     */
+    public LinkedList<SQLTypeAdapter> getTypeAdapters() {
+        return this.adapters;
+    }
+
+    /**
+     * Register a new type adapter, these adapters will translate java types/values to mysql types/values and
+     * the other way around
+     * @param adapter the adapter you want to register
+     * @return the current object instance
+     */
+    public JSQL registerTypeAdapter(SQLTypeAdapter adapter) {
+        this.adapters.add(adapter);
+        return this;
+    }
+
+    /**
+     * Unregister a type adapter if you don't need it anymore
+     * @param adapter the adapter you want to remove
+     * @return the current object instance
+     */
+    public JSQL unregisterTypeAdapter(SQLTypeAdapter adapter) {
+        this.adapters.remove(adapter);
+        return this;
+    }
+
+    /**
+     * Register and initialize a new sql object/table,
+     * mysql table will be created if it doesn't exist.
+     * Please keep in mind, this will only create tables not update them if you changed/added new fields to you classes
      * @param clazz the sql object to be stored in the mysql table
      * @param table the name of your mysql table (will be created if it doesn't exist)
      * @return the created SQLTable object
@@ -210,6 +263,8 @@ public class JSQL {
         if(this.username == null || this.password == null || this.hostAddress == null) {
             System.err.println("[JSQL Error] Couldn't connect to mysql server, username/password or hostAddress not set!");
         }
+
+        if(this.adapters.isEmpty()) this.registerDefaultAdapters();
 
         Properties connectionProps = new Properties();
         connectionProps.put("user", this.username);

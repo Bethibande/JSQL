@@ -1,5 +1,7 @@
 package com.bethibande.jsql;
 
+import com.bethibande.jsql.types.SQLType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

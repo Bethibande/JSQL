@@ -1,4 +1,4 @@
-package com.bethibande.jsql;
+package com.bethibande.jsql.types;
 
 public enum SQLType {
 
