@@ -13,10 +13,10 @@ By default JSQL can only save the following types, [save custom types](https://g
  - char
  - String
  - UUID
- - and enums
+ - and any enum types
 
 ## Examples
-A simple example can be found [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples)
+A simple example can be found [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples) <br>
 An example showing how to save custom types is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/adapters)
 
 ## Import
@@ -49,7 +49,6 @@ dependencies {
 
 ## Dependencies
  - JConnector 8.0.28
- - Gson (although only used in the examples classes -> Main.java)
 
 ## TODO
  - Add a caching option to SQLTable.java
