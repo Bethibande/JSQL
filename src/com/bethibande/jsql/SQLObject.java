@@ -16,4 +16,17 @@ public abstract class SQLObject {
         this.owner.saveItem(this);
     }
 
+    public Object getKey() {
+        Object obj = null;
+
+        String keyField = this.owner.getFields().getKeyValue();
+        try {
+            obj = this.owner.getFields().getFields().get(keyField).getField().get(this);
+        } catch(IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return obj;
+    }
+
 }

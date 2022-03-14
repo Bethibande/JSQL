@@ -1,5 +1,6 @@
 package com.bethibande.jsql;
 
+import com.bethibande.jsql.cache.CacheUpdateThread;
 import com.bethibande.jsql.fields.SQLTypeAdapter;
 import com.bethibande.jsql.fields.adapters.*;
 
@@ -31,6 +32,13 @@ public class JSQL {
 
     private LinkedList<SQLTypeAdapter> adapters = new LinkedList<>();
 
+    private CacheUpdateThread updateThread;
+
+
+    public void startCacheUpdateThread() {
+        this.updateThread = new CacheUpdateThread(this);
+        this.updateThread.start();
+    }
 
     private void registerDefaultAdapters() {
         adapters.add(new BooleanAdapter());
@@ -43,6 +51,24 @@ public class JSQL {
         adapters.add(new ShortAdapter());
         adapters.add(new StringAdapter());
         adapters.add(new UUIDTypeAdapter());
+    }
+
+    /**
+     * Call to update cache, this will remove all objects exceeding the timeout value
+     */
+    public void updateCache() {
+        for(SQLTable<?> table : tables.values()) {
+            if(table.isUseCache()) {
+                table.getCache().update();
+            }
+        }
+    }
+
+    /**
+     * @return all currently registered SQLTables
+     */
+    public Collection<SQLTable<? extends SQLObject>> getTables() {
+        return this.tables.values();
     }
 
     /**

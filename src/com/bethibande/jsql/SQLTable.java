@@ -1,5 +1,7 @@
 package com.bethibande.jsql;
 
+import com.bethibande.jsql.cache.CacheConfig;
+import com.bethibande.jsql.cache.SimpleCache;
 import com.bethibande.jsql.commands.SQLCommands;
 import com.bethibande.jsql.fields.SQLFields;
 import com.bethibande.jsql.fields.SQLTypeAdapter;
@@ -27,12 +29,49 @@ public class SQLTable<T extends SQLObject> {
     private SQLFields fields;
     private SQLCommands commands;
 
+    private boolean useCache = false;
+    private SimpleCache<Object, T> cache = null;
+
     private boolean init;
 
     public SQLTable(JSQL owner, Class<T> clazz, String table) {
         this.owner = owner;
         this.table = table;
         this.clazz = clazz;
+    }
+
+    /**
+     * executes useCache(new CacheConfig<>());
+     */
+    public void useCache() {
+        this.useCache(new CacheConfig<>());
+    }
+
+    /**
+     * Initialize cache
+     * @param config config for cache instance
+     */
+    public void useCache(CacheConfig<T> config) {
+        this.useCache = true;
+        this.cache = new SimpleCache<>(config.getSize(), config.getTimeout());
+        this.cache.setRemoveItemHook((item) -> {
+            this.saveItem(item);
+            config.getRemoveItemHook().accept(item);
+        });
+    }
+
+    /**
+     * @return true if useCache(config) was called and cache instance not equals null
+     */
+    public boolean isUseCache() {
+        return this.useCache && this.cache != null;
+    }
+
+    /**
+     * @return returns cache instance
+     */
+    public SimpleCache<?, T> getCache() {
+        return cache;
     }
 
     /**
@@ -59,6 +98,7 @@ public class SQLTable<T extends SQLObject> {
      * @return true if mysql table contains key value
      */
     public boolean hasItem(Object key) {
+        if(this.useCache && this.cache.hasKey(key)) return true;
         try {
             if(key.getClass().isEnum()) key = key.toString();
             ResultSet rs = this.owner.query(this.commands.getHasItemQuery(), key);
@@ -75,6 +115,7 @@ public class SQLTable<T extends SQLObject> {
      */
     public void deleteItem(Object key) {
         this.owner.update(this.commands.getDeleteCommand(), key);
+        if(this.useCache) this.cache.remove(key);
     }
 
     private Object[] getValues(T item) {
@@ -111,6 +152,8 @@ public class SQLTable<T extends SQLObject> {
      */
     public void putItem(T item) {
         item.setOwner(this);
+        System.out.println(item.getKey());
+        if(this.useCache) this.cache.put(item.getKey(), item);
         this.owner.update(this.getCommands().getInsertCommand(), getValues(item));
     }
 
@@ -120,6 +163,7 @@ public class SQLTable<T extends SQLObject> {
      */
     public void addItem(T item) {
         item.setOwner(this);
+        if(this.useCache) this.cache.put(item.getKey(), item);
         this.owner.update(this.getCommands().getInsertCommand(), getValues(item));
     }
 
@@ -129,6 +173,7 @@ public class SQLTable<T extends SQLObject> {
      */
     public void saveItem(T item) {
         item.setOwner(this);
+        //if(this.useCache) this.cache.put(item.getKey(), item);
         this.owner.update(this.getCommands().getUpdateCommand(), getValues(item));
     }
 
@@ -139,6 +184,7 @@ public class SQLTable<T extends SQLObject> {
      */
     public T getItem(Object key) {
         if(key.getClass().isEnum()) key = key.toString();
+        if(this.useCache && this.cache.hasKey(key)) return this.cache.get(key);
         ResultSet rs = this.owner.query(this.commands.getQueryCommand(), key);
         try {
             if(rs.next()) {
@@ -177,6 +223,7 @@ public class SQLTable<T extends SQLObject> {
                 }
 
                 instance.setOwner(this);
+                if(this.useCache) this.cache.put(instance.getKey(), instance);
                 return instance;
             }
         } catch(SQLException e) {
@@ -203,7 +250,7 @@ public class SQLTable<T extends SQLObject> {
 
     /**
      * Get the type/class this SQLTable instance stores
-     * @return
+     * @return class type stored in this table
      */
     public Class<T> getType() {
         return clazz;
