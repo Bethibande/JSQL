@@ -1,4 +1,4 @@
-# JSQL, a simple java mysql framework
+# JSQL, a simple java mysql framework 1.2.0
 This is just a very simple framework, that enables you to easily save and load your class instances from and to your mysql server
 Please note that I jsut started working on this project hence there isn't much here yet
 
@@ -17,10 +17,11 @@ By default JSQL can only save the following types, [save custom types](https://g
 
 ## Examples
 A simple example can be found [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples) <br>
-An example showing how to save custom types is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/adapters)
+An example showing how to save custom types is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/adapters) <br>
+A caching example can be found here [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/cache)
 
 ## Import
-Download jar [here](https://github.com/Bethibande/JSQL/blob/repository/de/bethibande/jsql/1.1.0/jsql-1.1.0.jar)
+Download jar [here](https://github.com/Bethibande/JSQL/blob/repository/de/bethibande/jsql/1.2.0/jsql-1.2.0.jar)
 ### Gradle
 ```gradle
 repositories {
@@ -30,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'de.bethibande:jsql:1.1.0'
+    implementation 'de.bethibande:jsql:1.2.0'
 }
 ```
 ### Maven
@@ -43,7 +44,7 @@ dependencies {
 <dependency>
     <groupId>de.bethibande</groupId>
     <artifactId>jsql</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -51,4 +52,4 @@ dependencies {
  - JConnector 8.0.28
 
 ## TODO
- - Add a caching option to SQLTable.java
+ - Add default values
