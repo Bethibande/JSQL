@@ -9,7 +9,7 @@ import com.google.gson.GsonBuilder;
 public class Main {
 
     public static void main(String[] args) {
-        // create JQSL instance and connect to your mysql server
+        // create JSQL instance and connect to your mysql server
         JSQL jsql = new JSQL();
         jsql.debug();
         jsql
