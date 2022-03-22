@@ -6,6 +6,7 @@ import com.bethibande.jsql.cache.CacheConfig;
 import com.bethibande.jsql.examples.Person;
 import com.google.gson.GsonBuilder;
 
+// TODO: move maven repo to independent github repo
 public class Main {
 
     public static void main(String[] args) {

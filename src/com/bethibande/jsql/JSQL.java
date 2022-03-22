@@ -72,6 +72,15 @@ public class JSQL {
     }
 
     /**
+     * Get the table of a certain class
+     * @param clazz the class stored in the table you want to get
+     * @return an SQLTable instance storing the specified class
+     */
+    public <T extends SQLObject> SQLTable<T> getTable(Class<T> clazz) {
+        return (SQLTable<T>) this.tables.get(clazz);
+    }
+
+    /**
      * @return all the currently registered type adapters
      */
     public LinkedList<SQLTypeAdapter> getTypeAdapters() {

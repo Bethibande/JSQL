@@ -14,9 +14,15 @@ public class SQLCommands {
     private final SQLFields fields;
     private final String table;
 
+    private String keyField;
+
     public SQLCommands(SQLFields fields, String table) {
         this.fields = fields;
         this.table = table;
+
+        for(String s : this.fields.getFields().keySet()) {
+            if(this.fields.getFields().get(s).isKey()) this.keyField = s;
+        }
     }
 
     public void generate() {
@@ -28,6 +34,32 @@ public class SQLCommands {
         deleteCommand();
         queryCommand();
         hasItemQuery();
+    }
+
+    public String generateCustomOrQuery(String... fields) {
+        StringBuilder sb = new StringBuilder("select `" + this.keyField + "` from `" + this.table + "` where");
+        for(String f : fields) {
+            sb.append(" `" + f + "`=? or");
+        }
+        sb.delete(sb.length()-3, sb.length());
+        sb.append(";");
+
+        return sb.toString();
+    }
+
+    public String generateCustomAndQuery(String... fields) {
+        StringBuilder sb = new StringBuilder("select `" + this.keyField + "` from `" + this.table + "` where");
+        for(String f : fields) {
+            sb.append(" `" + f + "`=? and");
+        }
+        sb.delete(sb.length()-4, sb.length());
+        sb.append(";");
+
+        return sb.toString();
+    }
+
+    public String generateSingleFieldQuery(String field) {
+        return "select `" + this.keyField + "` from `" + this.table + "` where `" + field + "`=?;";
     }
 
     private void createTableCommand() {

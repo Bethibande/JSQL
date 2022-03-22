@@ -3,6 +3,8 @@ package com.bethibande.jsql.examples;
 import com.bethibande.jsql.SQLField;
 import com.bethibande.jsql.SQLObject;
 
+// TODO: remove redundant adult parameter in constructor
+// TODO: add seed database method?
 public class Person extends SQLObject {
 
     /**

@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,6 +20,8 @@ import java.util.List;
  * A Class that represents a mysql table
  * @param <T> the type of the Objects being stored in this mysql table
  */
+// TODO: or query
+// TODO: custom queries
 public class SQLTable<T extends SQLObject> {
 
     private JSQL owner;
@@ -175,6 +178,178 @@ public class SQLTable<T extends SQLObject> {
         item.setOwner(this);
         //if(this.useCache) this.cache.put(item.getKey(), item);
         this.owner.update(this.getCommands().getUpdateCommand(), getValues(item));
+    }
+
+    /**
+     * This will execute a simple 'or' query and return a list of keys
+     * like "select `key` from `table` where `field1`='value1' or `field2`='value2';"
+     * @param fields the sql fields to query, for example 'username' and 'password'
+     * @param values the values to check, for example 'max' and 'password'
+     * @return a list of keys, retrieve items via SQLTable.get(key);
+     */
+    public List<Object> queryKeysOr(String[] fields, Object... values) {
+        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
+        Object[] objs = new Object[fields.length];
+        for(int i = 0; i < fields.length; i++) {
+            String field = fields[i];
+            SQLFields.SimpleField f = this.fields.getFields().get(field);
+            Object obj = values[i];
+
+            for (int i1 = 0; i1 < adapters.size(); i1++) {
+                SQLTypeAdapter a = adapters.get(i1);
+                FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
+                Object temp = a.toSQL(obj, ft);
+                if (temp != null) obj = temp;
+            }
+
+            if (obj.getClass().isEnum()) obj = obj.toString();
+            objs[i] = obj;
+        }
+
+        ResultSet rs = this.owner.query(this.commands.generateCustomOrQuery(fields), objs);
+        List<Object> keys = new ArrayList<>();
+        try {
+            while(rs.next()){
+                SQLFields.SimpleField f = this.fields.getFields().get(this.getFields().getKeyValue());
+                Class<?> type = f.getField().getType();
+                Object obj = null;
+
+                for (int i = 0; i < adapters.size(); i++) {
+                    SQLTypeAdapter a = adapters.get(i);
+                    Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
+                    if(temp != null) obj = temp;
+                }
+
+                if(type.isEnum()) {
+                    try {
+                        String str = rs.getString(this.getFields().getKeyValue());
+
+                        Method m = type.getDeclaredMethod("valueOf", String.class);
+                        obj = m.invoke(null, str);
+                    } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if(obj != null) keys.add(obj);
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return keys;
+    }
+
+    /**
+     * This will execute a simple 'and' query and return a list of keys
+     * like "select `key` from `table` where `field1`='value1' and `field2`='value2';"
+     * @param fields the sql fields to query, for example 'username' and 'password'
+     * @param values the values to check, for example 'max' and 'password'
+     * @return a list of keys, retrieve items via SQLTable.get(key);
+     */
+    public List<Object> queryKeysAnd(String[] fields, Object... values) {
+        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
+        Object[] objs = new Object[fields.length];
+        for(int i = 0; i < fields.length; i++) {
+            String field = fields[i];
+            SQLFields.SimpleField f = this.fields.getFields().get(field);
+            Object obj = values[i];
+
+            for (int i1 = 0; i1 < adapters.size(); i1++) {
+                SQLTypeAdapter a = adapters.get(i1);
+                FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
+                Object temp = a.toSQL(obj, ft);
+                if (temp != null) obj = temp;
+            }
+
+            if (obj.getClass().isEnum()) obj = obj.toString();
+            objs[i] = obj;
+        }
+
+        ResultSet rs = this.owner.query(this.commands.generateCustomAndQuery(fields), objs);
+        List<Object> keys = new ArrayList<>();
+        try {
+            while(rs.next()){
+                SQLFields.SimpleField f = this.fields.getFields().get(this.getFields().getKeyValue());
+                Class<?> type = f.getField().getType();
+                Object obj = null;
+
+                for (int i = 0; i < adapters.size(); i++) {
+                    SQLTypeAdapter a = adapters.get(i);
+                    Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
+                    if(temp != null) obj = temp;
+                }
+
+                if(type.isEnum()) {
+                    try {
+                        String str = rs.getString(this.getFields().getKeyValue());
+
+                        Method m = type.getDeclaredMethod("valueOf", String.class);
+                        obj = m.invoke(null, str);
+                    } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if(obj != null) keys.add(obj);
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return keys;
+    }
+
+    /**
+     * This executes a simple sql query and returns a list of keys
+     * query: "select `key` from `table` where `field`='value';"
+     * @param field the sql field to query, for example 'pet'
+     * @param value the value to check, for example 'CAT'
+     * @return a list of keys, retrieve items via SQLTable.get(key);
+     */
+    public List<Object> query(String field, Object value) {
+        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
+        SQLFields.SimpleField f = this.fields.getFields().get(field);
+        Object obj = value;
+
+        for (int i1 = 0; i1 < adapters.size(); i1++) {
+            SQLTypeAdapter a = adapters.get(i1);
+            FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
+            Object temp = a.toSQL(obj, ft);
+            if(temp != null) obj = temp;
+        }
+
+        if(obj.getClass().isEnum()) obj = obj.toString();
+
+        ResultSet rs = this.owner.query(this.commands.generateSingleFieldQuery(field), obj);
+        List<Object> keys = new ArrayList<>();
+        try {
+            while(rs.next()){
+                f = this.fields.getFields().get(this.getFields().getKeyValue());
+                Class<?> type = f.getField().getType();
+                obj = null;
+
+                for (int i = 0; i < adapters.size(); i++) {
+                    SQLTypeAdapter a = adapters.get(i);
+                    Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
+                    if(temp != null) obj = temp;
+                }
+
+                if(type.isEnum()) {
+                    try {
+                        String str = rs.getString(this.getFields().getKeyValue());
+
+                        Method m = type.getDeclaredMethod("valueOf", String.class);
+                        obj = m.invoke(null, str);
+                    } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if(obj != null) keys.add(obj);
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return keys;
     }
 
     /**
