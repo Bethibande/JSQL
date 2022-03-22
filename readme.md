@@ -18,7 +18,7 @@ By default JSQL can only save the following types, [save custom types](https://g
 ## Examples
 A simple example can be found [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples) <br>
 An example showing how to save custom types is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/adapters) <br>
-A caching example can be found here [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/cache)
+A caching example can be found here [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/cache) <br>
 An example for using basic 'or' and 'and' queries is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/query/Main.java)
 
 ## Import
