@@ -1,4 +1,4 @@
-# JSQL, a simple java mysql framework 1.2.1
+# JSQL, a simple java mysql framework 1.2.2
 This is just a very simple framework, that enables you to easily save and load your class instances from and to your mysql server
 Please note that I jsut started working on this project hence there isn't much here yet
 
@@ -22,7 +22,7 @@ A caching example can be found here [here](https://github.com/Bethibande/JSQL/tr
 An example for using basic 'or' and 'and' queries is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/query/Main.java)
 
 ## Import
-Download jar [here](https://github.com/Bethibande/JSQL/blob/repository/de/bethibande/jsql/1.2.1/jsql-1.2.1.jar)
+Download jar [here](https://github.com/Bethibande/JSQL/blob/repository/de/bethibande/jsql/1.2.2/jsql-1.2.2.jar)
 ### Gradle
 ```gradle
 repositories {
@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'de.bethibande:jsql:1.2.1'
+    implementation 'de.bethibande:jsql:1.2.2'
 }
 ```
 ### Maven
@@ -45,7 +45,7 @@ dependencies {
 <dependency>
     <groupId>de.bethibande</groupId>
     <artifactId>jsql</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
