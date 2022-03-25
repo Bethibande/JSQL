@@ -15,7 +15,7 @@ public class Main {
         jsql.debug();
         jsql
                 .host("127.0.0.1")
-                .user("root", "ph95Mouse")
+                .user("root", "password")
                 .connect();
         // select the database, can be done before calling JSQ.connect(); as well
         jsql.database("jsql");

@@ -253,6 +253,16 @@ public class JSQL {
         }
     }
 
+    public ResultSet query(String command) {
+        try {
+            PreparedStatement st = this.con.prepareStatement(command);
+            return st.executeQuery();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public ResultSet query(String command, Object... objects) {
         try {
             PreparedStatement st = this.con.prepareStatement(command);
@@ -272,6 +282,8 @@ public class JSQL {
      */
     public void disconnect() {
         if(!isConnected()) return;
+        if(this.updateThread != null) this.updateThread.stopThread();
+
         try {
             this.con.close();
             if(debug) System.out.println("MySQL Disconnected");

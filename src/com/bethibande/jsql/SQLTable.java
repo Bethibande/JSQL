@@ -20,7 +20,6 @@ import java.util.List;
  * A Class that represents a mysql table
  * @param <T> the type of the Objects being stored in this mysql table
  */
-// TODO: or query
 // TODO: custom queries
 public class SQLTable<T extends SQLObject> {
 
@@ -93,6 +92,54 @@ public class SQLTable<T extends SQLObject> {
         this.owner.update(this.commands.getCreateTableCommand());
 
         this.init = true;
+    }
+
+    /**
+     * @return true if your mysql table is empty / row count <= 0
+     */
+    public boolean isEmpty() {
+        return countRows() <= 0;
+    }
+
+    /**
+     * @return true if your mysql table is not empty / row count > 0
+     */
+    public boolean isNotEmpty() {
+        return countRows() > 0;
+    }
+
+    /**
+     * The same as SQLTable.countRows()
+     * @return the number of items in your mysql table
+     */
+    public int size() {
+        return countRows();
+    }
+
+    /**
+     * Executes count query, counts all rows/items stored in your mysql table
+     * @return the number of rows your table has, if an error occurred -1
+     */
+    public int countRows() {
+        try {
+            ResultSet rs = this.owner.query(this.commands.getCountCommand());
+            if(rs.next()) {
+                return rs.getInt("COUNT(*)");
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /**
+     * This method will clear the cache if used, and save all the cached items in your mysql table
+     */
+    public void dumpCache() {
+        if(this.useCache) {
+            this.cache.getAll().forEach(this::saveItem);
+            this.cache.clear();
+        }
     }
 
     /**

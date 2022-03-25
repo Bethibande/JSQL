@@ -10,6 +10,7 @@ public class SQLCommands {
     private String deleteCommand;
     private String queryCommand;
     private String hasItemQuery;
+    private String countCommand;
 
     private final SQLFields fields;
     private final String table;
@@ -28,12 +29,17 @@ public class SQLCommands {
     public void generate() {
         if(this.fields == null || this.table == null) return;
 
+        generateCountCommand();
         createTableCommand();
         updateCommand();
         insertCommand();
         deleteCommand();
         queryCommand();
         hasItemQuery();
+    }
+
+    private void generateCountCommand() {
+        this.countCommand = "select COUNT(*) from `" + this.table + "`;";
     }
 
     public String generateCustomOrQuery(String... fields) {
@@ -112,6 +118,10 @@ public class SQLCommands {
 
     public void hasItemQuery() {
         this.hasItemQuery = "select `" + this.fields.getKeyValue() + "` from `" + table + "` where `" + this.fields.getKeyValue() + "`=?;";
+    }
+
+    public String getCountCommand() {
+        return countCommand;
     }
 
     public String getCreateTableCommand() {

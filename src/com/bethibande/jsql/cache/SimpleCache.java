@@ -1,8 +1,10 @@
 package com.bethibande.jsql.cache;
 
+import java.util.Collection;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class SimpleCache<K, V> {
 
@@ -143,11 +145,25 @@ public class SimpleCache<K, V> {
     }
 
     /**
+     * @return all values in this cache instance
+     */
+    public Collection<V> getAll() {
+        return this.cache.stream().map(CacheItem::getValue).collect(Collectors.toList());
+    }
+
+    /**
      * @param key the key to check
      * @return true if cache contains key
      */
     public boolean hasKey(K key) {
         return cache.stream().anyMatch(it -> it.getKey().equals(key));
+    }
+
+    /**
+     * Clear the cache, all items will be removed immediately
+     */
+    public void clear() {
+        this.cache.clear();
     }
 
     /**

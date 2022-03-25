@@ -11,6 +11,8 @@ public class CacheUpdateThread extends Thread {
 
     private final JSQL owner;
 
+    private boolean shouldStop = false;
+
     private final long timeout = 1000;
 
     public CacheUpdateThread(JSQL owner) {
@@ -19,13 +21,13 @@ public class CacheUpdateThread extends Thread {
         this.owner = owner;
     }
 
+    public void stopThread() {
+        this.shouldStop = true;
+    }
+
     public void run() {
-        while(true) {
-            /*for(SQLTable<?> table : this.owner.getTables()) {
-                if(table.isUseCache()) {
-                    table.getCache().update();
-                }
-            }*/
+        while(true && !shouldStop) {
+
             this.owner.updateCache();
             try {
                 sleep(this.timeout);
