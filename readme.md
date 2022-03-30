@@ -28,7 +28,7 @@ Download jar [here](https://github.com/Bethibande/JSQL/blob/repository/de/bethib
 repositories {
     mavenCentral()
 
-    maven { url "https://github.com/Bethibande/JSQL/raw/repository" }
+    maven { url "https://github.com/Bethibande/maven-repos/raw/main" }
 }
 
 dependencies {
@@ -39,7 +39,7 @@ dependencies {
 ```xml
 <repository>
     <id>de.bethibande</id>
-    <url>https://github.com/Bethibande/JSQL/raw/repository</url>
+    <url>https://github.com/Bethibande/maven-repos/raw/main</url>
 </repository>
 
 <dependency>
