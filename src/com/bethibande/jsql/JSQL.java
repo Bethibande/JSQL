@@ -26,6 +26,8 @@ public class JSQL {
 
     private String database;
 
+    private String driverClass = "com.mysql.cj.jdbc.Driver";
+
     private Connection con;
 
     private HashMap<Class<? extends SQLObject>, SQLTable<? extends SQLObject>> tables = new HashMap<>();
@@ -72,12 +74,23 @@ public class JSQL {
     }
 
     /**
+     * Does the same as JSQL.getTable();
+     * Used for kotlin access using JSQL[Person::class.java] instead of JSQL.getTable(Person::class.java)
+     * @return an SQLTable instance storing the specified class
+     */
+    public <T extends SQLObject> SQLTable<T> get(Class<T> clazz) {
+        return this.getTable(clazz);
+    }
+
+    /**
      * Get the table of a certain class
      * @param clazz the class stored in the table you want to get
      * @return an SQLTable instance storing the specified class
      */
     public <T extends SQLObject> SQLTable<T> getTable(Class<T> clazz) {
-        return (SQLTable<T>) this.tables.get(clazz);
+        SQLTable<?> t = this.tables.get(clazz);
+        if(t == null) return null;
+        return (SQLTable<T>) t;
     }
 
     /**
@@ -179,6 +192,16 @@ public class JSQL {
     public JSQL host(String hostAddress, int hostPort) {
         this.hostAddress = hostAddress;
         this.hostPort = hostPort;
+        return this;
+    }
+
+    /**
+     * Set the jdbc driver class, default is "com.mysql.cj.jdbc.Driver"
+     * @param driverClass the driver class
+     * @return the current object instance
+     */
+    public JSQL driver(String driverClass) {
+        this.driverClass = driverClass;
         return this;
     }
 
@@ -319,7 +342,7 @@ public class JSQL {
         connectionProps.put("user", this.username);
         connectionProps.put("password", this.password);
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+            Class.forName(this.driverClass).newInstance();
             con = DriverManager.getConnection(
                     "jdbc:" + "mysql" + "://" +
                             this.hostAddress +

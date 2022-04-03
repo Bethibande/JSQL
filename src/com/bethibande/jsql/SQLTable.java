@@ -197,12 +197,19 @@ public class SQLTable<T extends SQLObject> {
     }
 
     /**
+     * Does the same as SQLTable.addItem
+     * @param item the item to add to your mysql table
+     */
+    public void add(T item) {
+        this.putItem(item);
+    }
+
+    /**
      * Does the same as SQLTable.addItem(T)
-     * @param item the item to add to the mysql table
+     * @param item the item to add to your mysql table
      */
     public void putItem(T item) {
         item.setOwner(this);
-        System.out.println(item.getKey());
         if(this.useCache) this.cache.put(item.getKey(), item);
         this.owner.update(this.getCommands().getInsertCommand(), getValues(item));
     }
@@ -346,13 +353,48 @@ public class SQLTable<T extends SQLObject> {
     }
 
     /**
-     * This executes a simple sql query and returns a list of keys
-     * query: "select `key` from `table` where `field`='value';"
-     * @param field the sql field to query, for example 'pet'
-     * @param value the value to check, for example 'CAT'
-     * @return a list of keys, retrieve items via SQLTable.get(key);
+     * Get java objects from a mysql ResultSet, ResultSet.next() must be called before invoking method
+     * @param field name of the java field within the class/type of this SQLTable instance
+     * @param rs the mysql ResultSet you want to load an object from
+     * @return the java Object, may be null
      */
-    public List<Object> query(String field, Object value) {
+    public Object sqlValueToJava(String field, ResultSet rs) {
+        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
+        SQLFields.SimpleField f = this.fields.getFields().get(this.getFields().getKeyValue());
+        Class<?> type = f.getField().getType();
+        Object obj = null;
+
+        try {
+            for (SQLTypeAdapter a : adapters) {
+                Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
+                if (temp != null) obj = temp;
+            }
+
+            if (type.isEnum()) {
+                try {
+                    String str = rs.getString(this.getFields().getKeyValue());
+
+                    Method m = type.getDeclaredMethod("valueOf", String.class);
+                    obj = m.invoke(null, str);
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+
+        return obj;
+    }
+
+    /**
+     * Turn a java object/field into the final object that will be saved in your mysql table,
+     * for example Person(name, age, job) -> String(name)
+     * @param field name of the java field within the class/type of the table instance
+     * @param value the java value, type must be the same as the type of the field
+     * @return the type which will be saved in your mysql table, string, int, boolean [...], may be null
+     */
+    public Object javaValueToSQL(String field, Object value) {
         List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
         SQLFields.SimpleField f = this.fields.getFields().get(field);
         Object obj = value;
@@ -365,6 +407,21 @@ public class SQLTable<T extends SQLObject> {
         }
 
         if(obj.getClass().isEnum()) obj = obj.toString();
+
+        return obj;
+    }
+
+    /**
+     * This executes a simple sql query and returns a list of keys
+     * query: "select `key` from `table` where `field`='value';"
+     * @param field the sql field to query, for example 'pet'
+     * @param value the value to check, for example 'CAT'
+     * @return a list of keys, retrieve items via SQLTable.get(key);
+     */
+    public List<Object> query(String field, Object value) {
+        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
+        SQLFields.SimpleField f = this.fields.getFields().get(field);
+        Object obj = javaValueToSQL(field, value);
 
         ResultSet rs = this.owner.query(this.commands.generateSingleFieldQuery(field), obj);
         List<Object> keys = new ArrayList<>();
@@ -397,6 +454,13 @@ public class SQLTable<T extends SQLObject> {
             e.printStackTrace();
         }
         return keys;
+    }
+
+    /**
+     * Does the same as SQLTable.getItem();
+     */
+    public T get(Object key) {
+        return this.getItem(key);
     }
 
     /**
