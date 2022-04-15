@@ -37,7 +37,7 @@ public class Main {
 
         System.out.println("\n\nQuery 2");
         // simple sql 'and' query
-        keys = table.queryKeysAnd(new String[]{"pet", "age"}, Pet.CAT, 15);
+        keys = table.queryKeysAnd(Arrays.of("pet", "age"), Pet.CAT, 15);
         for(Object key: keys) {
             Person p = table.getItem(key);
             printObject(p);
@@ -45,7 +45,7 @@ public class Main {
 
         System.out.println("\n\nQuery 3");
         // simple sql 'or' query
-        keys = table.queryKeysOr(new String[]{"age", "name"}, 54, "Max");
+        keys = table.queryKeysOr(Arrays.of("age", "name"), 54, "Max");
         for(Object key: keys) {
             Person p = table.getItem(key);
             printObject(p);
@@ -54,6 +54,12 @@ public class Main {
 
     public static void printObject(Object obj) {
         System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(obj));
+    }
+
+    public static class Arrays {
+        public static <T> T[] of(T... arr) {
+            return arr;
+        }
     }
 
 }
