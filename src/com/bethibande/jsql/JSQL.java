@@ -43,16 +43,7 @@ public class JSQL {
     }
 
     private void registerDefaultAdapters() {
-        adapters.add(new BooleanAdapter());
-        adapters.add(new ByteAdapter());
-        adapters.add(new CharAdapter());
-        adapters.add(new DoubleAdapter());
-        adapters.add(new FloatAdapter());
-        adapters.add(new IntAdapter());
-        adapters.add(new LongAdapter());
-        adapters.add(new ShortAdapter());
-        adapters.add(new StringAdapter());
-        adapters.add(new UUIDTypeAdapter());
+        adapters.add(new Defaultadapter());
     }
 
     /**

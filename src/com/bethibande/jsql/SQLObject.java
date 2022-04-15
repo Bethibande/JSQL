@@ -12,6 +12,11 @@ public abstract class SQLObject {
         return this.owner;
     }
 
+    public void saveField(String field) {
+        if(!this.owner.hasField(field)) return;
+        this.owner.saveField(this, field);
+    }
+
     public void save() {
         this.owner.saveItem(this);
     }

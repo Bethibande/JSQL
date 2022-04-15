@@ -7,6 +7,7 @@ import com.bethibande.jsql.types.FinalType;
 import com.bethibande.jsql.types.SQLType;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -61,6 +62,9 @@ public class SQLFields {
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             field.setAccessible(true);
+
+            if(Modifier.isStatic(field.getModifiers())) continue;
+
             if(field.isAnnotationPresent(SQLField.class)) {
                 SQLField sqlField = field.getAnnotation(SQLField.class);
                 SQLType type = sqlField.type();

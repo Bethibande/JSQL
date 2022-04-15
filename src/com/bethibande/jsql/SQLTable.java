@@ -17,10 +17,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A Class that represents a mysql table
+ * A Class representing a mysql table
  * @param <T> the type of the Objects being stored in this mysql table
  */
-// TODO: custom queries
 public class SQLTable<T extends SQLObject> {
 
     private JSQL owner;
@@ -130,6 +129,84 @@ public class SQLTable<T extends SQLObject> {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    /**
+     * Same as SQLTable.countColumn()
+     * @see #countColumn(String)
+     * @param fieldName the field name whose entries are to be counted
+     * @return the counted entries, no duplicates or null values counted
+     */
+    public int countUniqueFieldEntries(String fieldName) {
+        return countColumn(fieldName);
+    }
+
+    /**
+     * Count unique column entries, without counting duplicate or null entries.<br>
+     * For example calling SQLTable.coutColumn("Value"); using the table below, would return 2
+     * <table>
+     *   <col width="25%"/>
+     *   <col width="75%"/>
+     *   <thead>
+     *     <tr><th>Key</th><th>Value</th></tr>
+     *   <thead>
+     *   <tbody>
+     *      <tr><td>a</td><td>f</td></tr>
+     *      <tr><td>b</td><td>f</td></tr>
+     *      <tr><td>c</td><td>h</td></tr>
+     *   </tbody>
+     * </table>
+     * @param columnName the column/field name to be counted
+     * @return the number of entries counted, no duplicates or null values included
+     */
+    public int countColumn(String columnName) {
+        try {
+            ResultSet rs = this.owner.query(this.commands.generateCountColumnCommand(columnName));
+            if(rs.next()) {
+                return rs.getInt("count");
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /**
+     * Get the value of the specified field within the object instance
+     * @param obj the object instance containing the field/value you want to get
+     * @param field the java field name of the value you want to get
+     * @return the value, if there is none or an exception is thrown, returns null
+     */
+    public Object getFieldValue(T obj, String field) {
+        SQLFields.SimpleField sf = this.fields.getFields().get(field);
+
+        try {
+            return sf.getField().get(obj);
+        } catch(IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether the objects within this table have a field with the specified field name
+     * @param field the java field name
+     * @return true if there is a field with the specified name
+     */
+    public boolean hasField(String field) {
+        return this.fields.getFields().containsKey(field);
+    }
+
+    /**
+     * Save/update a single field of an object instead of saving/updating the entire object
+     * @param obj the object instance with the value you want to save
+     * @param field the java field name of the field you want to save
+     */
+    public void saveField(T obj, String field) {
+        Object key = obj.getKey();
+        Object save = javaValueToSQL(field, getFieldValue(obj, field));
+
+        this.owner.update(this.commands.generateFieldUpdateCommand(field), save, key);
     }
 
     /**

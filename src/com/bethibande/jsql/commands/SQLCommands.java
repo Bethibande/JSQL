@@ -42,6 +42,14 @@ public class SQLCommands {
         this.countCommand = "select COUNT(*) from `" + this.table + "`;";
     }
 
+    public String generateCountColumnCommand(String col) {
+        return "SELECT COUNT(distinct(`" + col + "`)) as `count` from `" + this.table + "`;";
+    }
+
+    public String generateFieldUpdateCommand(String field) {
+        return "UPDATE `" + this.table + "` SET `" + field + "`=? WHERE `" + this.keyField + "`=?;";
+    }
+
     public String generateCustomOrQuery(String... fields) {
         StringBuilder sb = new StringBuilder("select `" + this.keyField + "` from `" + this.table + "` where");
         for(String f : fields) {
