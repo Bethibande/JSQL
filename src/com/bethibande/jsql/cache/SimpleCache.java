@@ -1,14 +1,16 @@
 package com.bethibande.jsql.cache;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class SimpleCache<K, V> {
 
-    private Deque<CacheItem<K, V>> cache = new ConcurrentLinkedDeque<>();
+    private final Deque<CacheItem<K, V>> cache = new ConcurrentLinkedDeque<>();
 
     private int size;
     private long timeout;
@@ -112,7 +114,7 @@ public class SimpleCache<K, V> {
      */
     public void put(K key, V value) {
         if(key == null) return;
-        cache.remove(key); // remove old entries if existing to prevent duplicate entries
+        this.remove(key); // remove old entries if existing to prevent duplicate entries
         cache.offer(new CacheItem<>(key, value));
         makeSpace();
     }
@@ -122,10 +124,16 @@ public class SimpleCache<K, V> {
      * @param key the key of your value
      */
     public void remove(K key) {
-        cache.stream().filter(it -> !it.getKey().equals(key)).forEach(it -> {
+        if(key == null) return;
+
+        List<CacheItem<K, V>> remove = new ArrayList<>();
+        cache.stream().filter(it -> it.getKey().equals(key)).forEach(it -> {
             if(this.removeItemHook != null) this.removeItemHook.accept(it.getValue());
-            cache.remove(it);
+            remove.add(it);
         });
+
+        remove.forEach(cache::remove);
+        remove.clear();
     }
 
     /**
@@ -176,10 +184,10 @@ public class SimpleCache<K, V> {
         });
     }
 
-    public class CacheItem<K, V> {
+    public static class CacheItem<K, V> {
 
-        private K key;
-        private V value;
+        private final K key;
+        private final V value;
         private Long time;
 
         public CacheItem(K key, V value) {

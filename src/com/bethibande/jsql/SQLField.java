@@ -13,8 +13,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface SQLField {
 
-    public SQLType type() default SQLType.AUTO_DETECT;
-    public int size() default 0;
-    public boolean isKey() default false;
+    SQLType type() default SQLType.AUTO_DETECT;
+    long size() default 0;
+    boolean isKey() default false;
 
 }

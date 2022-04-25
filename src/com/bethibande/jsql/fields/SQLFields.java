@@ -13,15 +13,15 @@ import java.util.LinkedList;
 
 public class SQLFields {
 
-    public class SimpleField {
+    public static class SimpleField {
 
-        private transient Field field;
-        private transient SQLField sqlField;
+        private final transient Field field;
+        private final transient SQLField sqlField;
 
-        private SQLType type;
-        private long typeSize;
+        private final SQLType type;
+        private final long typeSize;
 
-        private boolean isKey;
+        private final boolean isKey;
 
         public SimpleField(Field field, SQLField sqlField, SQLType type, long typeSize, boolean isKey) {
             this.field = field;
@@ -59,41 +59,38 @@ public class SQLFields {
     public void generate(Class<? extends SQLObject> objClass, JSQL owner) {
         Field[] fields = objClass.getDeclaredFields();
         LinkedList<SQLTypeAdapter> adapters = owner.getTypeAdapters();
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+
+        for(Field field : fields) {
             field.setAccessible(true);
 
-            if(Modifier.isStatic(field.getModifiers())) continue;
+            if (Modifier.isStatic(field.getModifiers())) continue;
 
-            if(field.isAnnotationPresent(SQLField.class)) {
+            if (field.isAnnotationPresent(SQLField.class)) {
                 SQLField sqlField = field.getAnnotation(SQLField.class);
                 SQLType type = sqlField.type();
                 long size = sqlField.size();
 
 
-                if(sqlField.isKey()) this.keyValue = field.getName();
+                if (sqlField.isKey()) this.keyValue = field.getName();
 
-                boolean isEnum = false;
-                if(field.getType().isEnum()) {
+                if (field.getType().isEnum()) {
                     type = SQLType.VARCHAR;
                     size = SQLType.VARCHAR.getDefaultSize();
-                    isEnum = true;
                 }
 
                 FinalType finalType = null;
-                for (int i1 = 0; i1 < adapters.size(); i1++) {
-                    SQLTypeAdapter a = adapters.get(i1);
-                    FinalType temp = a.translateType(field.getType(), type, size);
-                    if(temp != null) finalType = temp;
+                for (SQLTypeAdapter a : adapters) {
+                    FinalType temp = a.translateType(new TypeTranslationParameters(field.getDeclaringClass(), field, field.getType(), type, size));
+                    if (temp != null) finalType = temp;
                 }
 
-                if(finalType != null) {
+                if (finalType != null) {
                     type = finalType.getSqlType();
                     size = finalType.getSize();
                 }
 
                 // in case the type is still AUTO_DETECT, which usually shouldn't be the case
-                if(type.equals(SQLType.AUTO_DETECT)) {
+                if (type.equals(SQLType.AUTO_DETECT)) {
                     type = SQLType.VARCHAR;
                     size = SQLType.VARCHAR.getMaxSize();
                 }

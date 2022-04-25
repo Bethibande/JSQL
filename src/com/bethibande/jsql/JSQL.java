@@ -30,9 +30,9 @@ public class JSQL {
 
     private Connection con;
 
-    private HashMap<Class<? extends SQLObject>, SQLTable<? extends SQLObject>> tables = new HashMap<>();
+    private final HashMap<Class<? extends SQLObject>, SQLTable<? extends SQLObject>> tables = new HashMap<>();
 
-    private LinkedList<SQLTypeAdapter> adapters = new LinkedList<>();
+    private final LinkedList<SQLTypeAdapter> adapters = new LinkedList<>();
 
     private CacheUpdateThread updateThread;
 
@@ -43,7 +43,7 @@ public class JSQL {
     }
 
     private void registerDefaultAdapters() {
-        adapters.add(new Defaultadapter());
+        adapters.add(new DefaultAdapter());
     }
 
     /**
@@ -235,8 +235,8 @@ public class JSQL {
     public void updateBatch(String... command) {
         try {
             Statement st = this.con.createStatement();
-            for (int i = 0; i < command.length; i++) {
-                st.addBatch(command[i]);
+            for (String s : command) {
+                st.addBatch(s);
             }
             st.executeBatch();
             st.close();
@@ -300,7 +300,7 @@ public class JSQL {
 
         try {
             this.con.close();
-            if(debug) System.out.println("MySQL Disconnected");
+            if(debug) System.out.println("[JSQL] Disconnected!");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -342,9 +342,7 @@ public class JSQL {
                     connectionProps);
 
             if(debug) System.out.println(isConnected() ? "[JSQL] Connected!": "[JSQL] Couldn't connect to mysql server!");
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        } catch (Exception ex) {
+        } catch(Exception ex) {
             ex.printStackTrace();
         }
 

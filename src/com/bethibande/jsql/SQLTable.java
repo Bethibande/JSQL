@@ -3,7 +3,9 @@ package com.bethibande.jsql;
 import com.bethibande.jsql.cache.CacheConfig;
 import com.bethibande.jsql.cache.SimpleCache;
 import com.bethibande.jsql.commands.SQLCommands;
+import com.bethibande.jsql.fields.JavaTranslationParameters;
 import com.bethibande.jsql.fields.SQLFields;
+import com.bethibande.jsql.fields.SQLTranslationParameters;
 import com.bethibande.jsql.fields.SQLTypeAdapter;
 import com.bethibande.jsql.reflect.ClassUtils;
 import com.bethibande.jsql.types.FinalType;
@@ -22,10 +24,10 @@ import java.util.List;
  */
 public class SQLTable<T extends SQLObject> {
 
-    private JSQL owner;
-    private String table;
+    private final JSQL owner;
+    private final String table;
 
-    private Class<T> clazz;
+    private final Class<T> clazz;
 
     private SQLFields fields;
     private SQLCommands commands;
@@ -57,7 +59,7 @@ public class SQLTable<T extends SQLObject> {
         this.cache = new SimpleCache<>(config.getSize(), config.getTimeout());
         this.cache.setRemoveItemHook((item) -> {
             this.saveItem(item);
-            config.getRemoveItemHook().accept(item);
+            if(config.getRemoveItemHook() != null) config.getRemoveItemHook().accept(item);
         });
     }
 
@@ -210,6 +212,16 @@ public class SQLTable<T extends SQLObject> {
     }
 
     /**
+     * Disabled cache error messages, if cache is initialized/used.
+     * Error messages, like the overflow error message
+     */
+    public void disableCacheErrorMessages() {
+        if(this.useCache) {
+            this.cache.noErrors();
+        }
+    }
+
+    /**
      * This method will clear the cache if used, and save all the cached items in your mysql table
      */
     public void dumpCache() {
@@ -225,10 +237,11 @@ public class SQLTable<T extends SQLObject> {
      * @return true if mysql table contains key value
      */
     public boolean hasItem(Object key) {
+        if(key == null) return false;
         if(this.useCache && this.cache.hasKey(key)) return true;
         try {
             if(key.getClass().isEnum()) key = key.toString();
-            ResultSet rs = this.owner.query(this.commands.getHasItemQuery(), key);
+            ResultSet rs = this.owner.query(this.commands.getHasItemQuery(), javaValueToSQL(this.fields.getKeyValue(), key));
             return rs.next();
         } catch(SQLException e) {
             e.printStackTrace();
@@ -241,13 +254,12 @@ public class SQLTable<T extends SQLObject> {
      * @param key the key of the item to remove
      */
     public void deleteItem(Object key) {
-        this.owner.update(this.commands.getDeleteCommand(), key);
         if(this.useCache) this.cache.remove(key);
+        this.owner.update(this.commands.getDeleteCommand(), javaValueToSQL(this.fields.getKeyValue(), key));
     }
 
     private Object[] getValues(T item) {
         Object[] values = new Object[this.fields.getFields().size()];
-        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
 
         Iterator<SQLFields.SimpleField> it = this.fields.getFields().values().iterator();
         for (int i = 0; i < this.fields.getFields().keySet().size(); i++) {
@@ -255,14 +267,12 @@ public class SQLTable<T extends SQLObject> {
             try {
                 Object obj = f.getField().get(item);
 
-                for (int i1 = 0; i1 < adapters.size(); i1++) {
-                    SQLTypeAdapter a = adapters.get(i1);
-                    FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
-                    Object temp = a.toSQL(obj, ft);
-                    if(temp != null) obj = temp;
+                if(obj == null) {
+                    values[i] = null;
+                    continue;
                 }
 
-                if(obj.getClass().isEnum()) obj = obj.toString();
+                obj = javaValueToSQL(f.getField().getName(), obj);
 
                 values[i] = obj;
             } catch (IllegalAccessException e) {
@@ -319,21 +329,15 @@ public class SQLTable<T extends SQLObject> {
      * @return a list of keys, retrieve items via SQLTable.get(key);
      */
     public List<Object> queryKeysOr(String[] fields, Object... values) {
-        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
         Object[] objs = new Object[fields.length];
         for(int i = 0; i < fields.length; i++) {
             String field = fields[i];
             SQLFields.SimpleField f = this.fields.getFields().get(field);
+
             Object obj = values[i];
 
-            for (int i1 = 0; i1 < adapters.size(); i1++) {
-                SQLTypeAdapter a = adapters.get(i1);
-                FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
-                Object temp = a.toSQL(obj, ft);
-                if (temp != null) obj = temp;
-            }
+            obj = javaValueToSQL(f.getField().getName(), obj);
 
-            if (obj.getClass().isEnum()) obj = obj.toString();
             objs[i] = obj;
         }
 
@@ -341,26 +345,7 @@ public class SQLTable<T extends SQLObject> {
         List<Object> keys = new ArrayList<>();
         try {
             while(rs.next()){
-                SQLFields.SimpleField f = this.fields.getFields().get(this.getFields().getKeyValue());
-                Class<?> type = f.getField().getType();
-                Object obj = null;
-
-                for (int i = 0; i < adapters.size(); i++) {
-                    SQLTypeAdapter a = adapters.get(i);
-                    Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
-                    if(temp != null) obj = temp;
-                }
-
-                if(type.isEnum()) {
-                    try {
-                        String str = rs.getString(this.getFields().getKeyValue());
-
-                        Method m = type.getDeclaredMethod("valueOf", String.class);
-                        obj = m.invoke(null, str);
-                    } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                        e.printStackTrace();
-                    }
-                }
+                Object obj = sqlValueToJava(this.fields.getKeyValue(), rs);
 
                 if(obj != null) keys.add(obj);
             }
@@ -378,21 +363,14 @@ public class SQLTable<T extends SQLObject> {
      * @return a list of keys, retrieve items via SQLTable.get(key);
      */
     public List<Object> queryKeysAnd(String[] fields, Object... values) {
-        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
         Object[] objs = new Object[fields.length];
         for(int i = 0; i < fields.length; i++) {
             String field = fields[i];
             SQLFields.SimpleField f = this.fields.getFields().get(field);
             Object obj = values[i];
 
-            for (int i1 = 0; i1 < adapters.size(); i1++) {
-                SQLTypeAdapter a = adapters.get(i1);
-                FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
-                Object temp = a.toSQL(obj, ft);
-                if (temp != null) obj = temp;
-            }
+            obj = javaValueToSQL(f.getField().getName(), obj);
 
-            if (obj.getClass().isEnum()) obj = obj.toString();
             objs[i] = obj;
         }
 
@@ -400,26 +378,7 @@ public class SQLTable<T extends SQLObject> {
         List<Object> keys = new ArrayList<>();
         try {
             while(rs.next()){
-                SQLFields.SimpleField f = this.fields.getFields().get(this.getFields().getKeyValue());
-                Class<?> type = f.getField().getType();
-                Object obj = null;
-
-                for (int i = 0; i < adapters.size(); i++) {
-                    SQLTypeAdapter a = adapters.get(i);
-                    Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
-                    if(temp != null) obj = temp;
-                }
-
-                if(type.isEnum()) {
-                    try {
-                        String str = rs.getString(this.getFields().getKeyValue());
-
-                        Method m = type.getDeclaredMethod("valueOf", String.class);
-                        obj = m.invoke(null, str);
-                    } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                        e.printStackTrace();
-                    }
-                }
+                Object obj = sqlValueToJava(this.fields.getKeyValue(), rs);
 
                 if(obj != null) keys.add(obj);
             }
@@ -437,19 +396,21 @@ public class SQLTable<T extends SQLObject> {
      */
     public Object sqlValueToJava(String field, ResultSet rs) {
         List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
-        SQLFields.SimpleField f = this.fields.getFields().get(this.getFields().getKeyValue());
+        SQLFields.SimpleField f = this.fields.getFields().get(field);
         Class<?> type = f.getField().getType();
         Object obj = null;
 
+        SQLTranslationParameters translationParameters = new SQLTranslationParameters(f.getField().getDeclaringClass(), f.getField(), type, field, rs);
+
         try {
             for (SQLTypeAdapter a : adapters) {
-                Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
+                Object temp = a.fromSQL(translationParameters);
                 if (temp != null) obj = temp;
             }
 
             if (type.isEnum()) {
                 try {
-                    String str = rs.getString(this.getFields().getKeyValue());
+                    String str = rs.getString(field);
 
                     Method m = type.getDeclaredMethod("valueOf", String.class);
                     obj = m.invoke(null, str);
@@ -476,11 +437,12 @@ public class SQLTable<T extends SQLObject> {
         SQLFields.SimpleField f = this.fields.getFields().get(field);
         Object obj = value;
 
-        for (int i1 = 0; i1 < adapters.size(); i1++) {
-            SQLTypeAdapter a = adapters.get(i1);
-            FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
-            Object temp = a.toSQL(obj, ft);
-            if(temp != null) obj = temp;
+        FinalType ft = FinalType.of(f.getType(), f.getTypeSize());
+        JavaTranslationParameters translationParameters = new JavaTranslationParameters(f.getField().getDeclaringClass(), f.getField(), obj, ft);
+
+        for(SQLTypeAdapter a : adapters) {
+            Object temp = a.toSQL(translationParameters);
+            if (temp != null) obj = temp;
         }
 
         if(obj.getClass().isEnum()) obj = obj.toString();
@@ -496,34 +458,13 @@ public class SQLTable<T extends SQLObject> {
      * @return a list of keys, retrieve items via SQLTable.get(key);
      */
     public List<Object> query(String field, Object value) {
-        List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
-        SQLFields.SimpleField f = this.fields.getFields().get(field);
         Object obj = javaValueToSQL(field, value);
 
         ResultSet rs = this.owner.query(this.commands.generateSingleFieldQuery(field), obj);
         List<Object> keys = new ArrayList<>();
         try {
             while(rs.next()){
-                f = this.fields.getFields().get(this.getFields().getKeyValue());
-                Class<?> type = f.getField().getType();
-                obj = null;
-
-                for (int i = 0; i < adapters.size(); i++) {
-                    SQLTypeAdapter a = adapters.get(i);
-                    Object temp = a.fromSQL(type, this.getFields().getKeyValue(), rs);
-                    if(temp != null) obj = temp;
-                }
-
-                if(type.isEnum()) {
-                    try {
-                        String str = rs.getString(this.getFields().getKeyValue());
-
-                        Method m = type.getDeclaredMethod("valueOf", String.class);
-                        obj = m.invoke(null, str);
-                    } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                        e.printStackTrace();
-                    }
-                }
+                obj = sqlValueToJava(this.fields.getKeyValue(), rs);
 
                 if(obj != null) keys.add(obj);
             }
@@ -546,37 +487,18 @@ public class SQLTable<T extends SQLObject> {
      * @return returns the item
      */
     public T getItem(Object key) {
-        if(key.getClass().isEnum()) key = key.toString();
         if(this.useCache && this.cache.hasKey(key)) return this.cache.get(key);
-        ResultSet rs = this.owner.query(this.commands.getQueryCommand(), key);
+        ResultSet rs = this.owner.query(this.commands.getQueryCommand(), javaValueToSQL(this.fields.getKeyValue(), key));
         try {
             if(rs.next()) {
                 T instance = ClassUtils.createClassInstance(this.clazz);
-                List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
 
                 Iterator<String> it = this.fields.getFields().keySet().iterator();
                 while(it.hasNext()) {
                     String name = it.next();
                     SQLFields.SimpleField f = this.fields.getFields().get(name);
-                    Class<?> type = f.getField().getType();
-                    Object obj = null;
 
-                    for (int i = 0; i < adapters.size(); i++) {
-                        SQLTypeAdapter a = adapters.get(i);
-                        Object temp = a.fromSQL(type, name, rs);
-                        if(temp != null) obj = temp;
-                    }
-
-                    if(type.isEnum()) {
-                        try {
-                            String str = rs.getString(name);
-
-                            Method m = type.getDeclaredMethod("valueOf", String.class);
-                            obj = m.invoke(null, str);
-                        } catch(IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    Object obj = sqlValueToJava(name, rs);
 
                     try {
                         f.getField().set(instance, obj);
@@ -585,7 +507,12 @@ public class SQLTable<T extends SQLObject> {
                     }
                 }
 
-                instance.setOwner(this);
+                if(instance != null) {
+                    instance.setOwner(this);
+                } else {
+                    System.err.println("[JSQL] failed to retrieve item '" + key.toString() + "' from table '" + this.table + "'");
+                    return null;
+                }
                 if(this.useCache) this.cache.put(instance.getKey(), instance);
                 return instance;
             }
@@ -636,7 +563,7 @@ public class SQLTable<T extends SQLObject> {
     }
 
     /**
-     * @returns Nothing useful
+     * @return Nothing useful
      */
     public boolean isInit() {
         return init;

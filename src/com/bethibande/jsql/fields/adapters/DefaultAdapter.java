@@ -1,17 +1,23 @@
 package com.bethibande.jsql.fields.adapters;
 
+import com.bethibande.jsql.fields.JavaTranslationParameters;
+import com.bethibande.jsql.fields.SQLTranslationParameters;
 import com.bethibande.jsql.fields.SQLTypeAdapter;
+import com.bethibande.jsql.fields.TypeTranslationParameters;
 import com.bethibande.jsql.types.FinalType;
 import com.bethibande.jsql.types.SQLType;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-public class Defaultadapter implements SQLTypeAdapter {
+public class DefaultAdapter implements SQLTypeAdapter {
 
     @Override
-    public FinalType translateType(Class<?> type, SQLType sqlType, long size) {
+    public FinalType translateType(TypeTranslationParameters parameters) {
+        Class<?> type = parameters.getType();
+        SQLType sqlType = parameters.getSqlType();
+
+        if(sqlType != SQLType.AUTO_DETECT) return null;
         if(type == boolean.class || type == Boolean.class) return FinalType.of(SQLType.BOOL, SQLType.BOOL.getDefaultSize());
         if(type == byte.class || type == Byte.class) return FinalType.of(SQLType.TINYINT, SQLType.TINYINT.getDefaultSize());
         if(type == char.class || type == Character.class) return FinalType.of(SQLType.CHAR, SQLType.CHAR.getDefaultSize());
@@ -26,22 +32,29 @@ public class Defaultadapter implements SQLTypeAdapter {
     }
 
     @Override
-    public <T> T fromSQL(Class<T> type, String name, ResultSet resultSet) throws SQLException {
-        if(type == boolean.class || type == Boolean.class) return (T)new Boolean(resultSet.getBoolean(name));
-        if(type == byte.class || type == Byte.class) return (T)new Byte(resultSet.getByte(name));
-        if(type == char.class || type == Character.class) return (T)new Character(resultSet.getString(name).charAt(0));
-        if(type == double.class || type == Double.class) return (T)new Double(resultSet.getDouble(name));
-        if(type == float.class || type == Float.class) return (T)new Float(resultSet.getFloat(name));
-        if(type == int.class || type == Integer.class) return (T)new Integer(resultSet.getInt(name));
-        if(type == long.class || type == Long.class) return (T)new Long(resultSet.getLong(name));
-        if(type == short.class || type == Short.class) return (T)new Short(resultSet.getShort(name));
-        if(type == String.class) return (T) resultSet.getString(name);
-        if(type == UUID.class) return (T) UUID.fromString(resultSet.getString(name));
+    public Object fromSQL(SQLTranslationParameters parameters) throws SQLException {
+        if(parameters.getTargetType() == null || parameters.getAsString() == null) return null;
+        Class<?> type = parameters.getTargetType();
+
+        if(type == boolean.class || type == Boolean.class) return parameters.getAsBoolean();
+        if(type == byte.class || type == Byte.class) return parameters.getAsByte();
+        if(type == char.class || type == Character.class) return parameters.getAsString().charAt(0);
+        if(type == double.class || type == Double.class) return parameters.getAsDouble();
+        if(type == float.class || type == Float.class) return parameters.getAsFloat();
+        if(type == int.class || type == Integer.class) return parameters.getAsInteger();
+        if(type == long.class || type == Long.class) return parameters.getAsLong();
+        if(type == short.class || type == Short.class) return parameters.getAsShort();
+        if(type == String.class) return  parameters.getAsString();
+        if(type == UUID.class) return  UUID.fromString(parameters.getAsString());
+
         return null;
     }
 
     @Override
-    public Object toSQL(Object javaObj, FinalType targetType) {
+    public Object toSQL(JavaTranslationParameters parameters) {
+        Object javaObj = parameters.getObject();
+        if(javaObj == null) return null;
+
         if(javaObj.getClass() == boolean.class || javaObj.getClass() == Boolean.class) return javaObj;
         if(javaObj.getClass() == byte.class || javaObj.getClass() == Byte.class) return javaObj;
         if(javaObj.getClass() == char.class || javaObj.getClass() == Character.class) return javaObj.toString();
