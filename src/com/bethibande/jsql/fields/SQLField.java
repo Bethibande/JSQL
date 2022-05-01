@@ -1,4 +1,4 @@
-package com.bethibande.jsql;
+package com.bethibande.jsql.fields;
 
 import com.bethibande.jsql.types.SQLType;
 

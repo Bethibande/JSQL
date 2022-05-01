@@ -1,9 +1,7 @@
-package com.bethibande.jsql.fields;
+package com.bethibande.jsql.fields.adapters;
 
 import com.bethibande.jsql.types.FinalType;
-import com.bethibande.jsql.types.SQLType;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public interface SQLTypeAdapter {

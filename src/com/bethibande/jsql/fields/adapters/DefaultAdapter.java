@@ -1,9 +1,5 @@
 package com.bethibande.jsql.fields.adapters;
 
-import com.bethibande.jsql.fields.JavaTranslationParameters;
-import com.bethibande.jsql.fields.SQLTranslationParameters;
-import com.bethibande.jsql.fields.SQLTypeAdapter;
-import com.bethibande.jsql.fields.TypeTranslationParameters;
 import com.bethibande.jsql.types.FinalType;
 import com.bethibande.jsql.types.SQLType;
 

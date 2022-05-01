@@ -3,18 +3,21 @@ package com.bethibande.jsql;
 import com.bethibande.jsql.cache.CacheConfig;
 import com.bethibande.jsql.cache.SimpleCache;
 import com.bethibande.jsql.commands.SQLCommands;
-import com.bethibande.jsql.fields.JavaTranslationParameters;
+import com.bethibande.jsql.fields.adapters.JavaTranslationParameters;
 import com.bethibande.jsql.fields.SQLFields;
-import com.bethibande.jsql.fields.SQLTranslationParameters;
-import com.bethibande.jsql.fields.SQLTypeAdapter;
+import com.bethibande.jsql.fields.adapters.SQLTranslationParameters;
+import com.bethibande.jsql.fields.adapters.SQLTypeAdapter;
 import com.bethibande.jsql.reflect.ClassUtils;
+import com.bethibande.jsql.reflect.IAbstractClassFactory;
 import com.bethibande.jsql.types.FinalType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,6 +32,8 @@ public class SQLTable<T extends SQLObject> {
 
     private final Class<T> clazz;
 
+    private IAbstractClassFactory<T> abstractClassFactory = null;
+
     private SQLFields fields;
     private SQLCommands commands;
 
@@ -41,6 +46,18 @@ public class SQLTable<T extends SQLObject> {
         this.owner = owner;
         this.table = table;
         this.clazz = clazz;
+    }
+
+    public void setAbstractClassFactory(IAbstractClassFactory<T> factory) {
+        this.abstractClassFactory = factory;
+    }
+
+    /**
+     * Get the abstract class factory instance of this table
+     * @return the abstract class factory instance, will return null by default, set an abstract class factory using {@code setAbstractClassFactory(IAbstractClassFactory<T>);}
+     */
+    public IAbstractClassFactory<T> getAbstractClassFactory() {
+        return this.abstractClassFactory;
     }
 
     /**
@@ -83,7 +100,7 @@ public class SQLTable<T extends SQLObject> {
      */
     public void init() {
         if(this.init) {
-            if(this.owner.isDebug()) System.out.println("[JSQL ERROR] called SQLTable.init() twice or more!");
+            if(this.owner.isDebug()) System.out.println("[JSQL ERROR] SQLTable already initialized, called SQLTable.init() twice or more!");
             return;
         }
 
@@ -417,6 +434,7 @@ public class SQLTable<T extends SQLObject> {
                 } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     e.printStackTrace();
                 }
+                //obj = EnumUtils.stringToEnum(type, rs.getString(field));
             }
         } catch(SQLException e) {
             e.printStackTrace();
@@ -484,10 +502,23 @@ public class SQLTable<T extends SQLObject> {
     /**
      * Load an item from your mysql table
      * @param key the key marked as isKey using the @SQLField annotation
-     * @return returns the item
+     * @return returns the item, may return null if there is no item with the specified key or if an error occurs
      */
     public T getItem(Object key) {
         if(this.useCache && this.cache.hasKey(key)) return this.cache.get(key);
+
+        if(Modifier.isAbstract(this.clazz.getModifiers())) {
+            if(this.abstractClassFactory == null) {
+                System.err.println("[JSQL ERROR] SQLTable represents an abstract class type (" + this.clazz + ") but has no abstract class factory!");
+                return null;
+            }
+
+            SQLDataObject<T> dataObject = getItemAsDataObject(key);
+            if(dataObject == null) return null;
+
+            return this.abstractClassFactory.toClassInstance(dataObject);
+        }
+
         ResultSet rs = this.owner.query(this.commands.getQueryCommand(), javaValueToSQL(this.fields.getKeyValue(), key));
         try {
             if(rs.next()) {
@@ -515,6 +546,39 @@ public class SQLTable<T extends SQLObject> {
                 }
                 if(this.useCache) this.cache.put(instance.getKey(), instance);
                 return instance;
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Get item from your sql table as SQLDataObject, this method will be used to load items if the class saved in this table is an abstract class.
+     * This method will not create an instance of the specified class of this table <br>
+     * and will also not save items in cache, if you have cache enabled.
+     *
+     * @see SQLDataObject#getFieldValue(String)
+     * @param key the key object of the object you want to load
+     * @return a SQLDataObject object representing the object you want to load, this contains all the values and fields the real object instance would contain
+     */
+    public SQLDataObject<T> getItemAsDataObject(Object key) {
+        if(this.useCache && this.cache.hasKey(key)) return (SQLDataObject<T>) this.cache.get(key).asDataObject();
+        ResultSet rs = this.owner.query(this.commands.getQueryCommand(), javaValueToSQL(this.fields.getKeyValue(), key));
+        try {
+            if(rs.next()) {
+                HashMap<String, SQLFieldInstance<?>> data = new HashMap<>();
+                Iterator<String> it = this.fields.getFields().keySet().iterator();
+                while(it.hasNext()) {
+                    String name = it.next();
+                    SQLFields.SimpleField f = this.fields.getFields().get(name);
+
+                    Object obj = sqlValueToJava(name, rs);
+
+                    data.put(name, new SQLFieldInstance<>(name, obj, f));
+                }
+
+                return new SQLDataObject<>(data, this);
             }
         } catch(SQLException e) {
             e.printStackTrace();

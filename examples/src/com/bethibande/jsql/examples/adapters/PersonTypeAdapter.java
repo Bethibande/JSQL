@@ -1,10 +1,10 @@
 package com.bethibande.jsql.examples.adapters;
 
 import com.bethibande.jsql.SQLTable;
-import com.bethibande.jsql.fields.JavaTranslationParameters;
-import com.bethibande.jsql.fields.SQLTranslationParameters;
-import com.bethibande.jsql.fields.SQLTypeAdapter;
-import com.bethibande.jsql.fields.TypeTranslationParameters;
+import com.bethibande.jsql.fields.adapters.JavaTranslationParameters;
+import com.bethibande.jsql.fields.adapters.SQLTranslationParameters;
+import com.bethibande.jsql.fields.adapters.SQLTypeAdapter;
+import com.bethibande.jsql.fields.adapters.TypeTranslationParameters;
 import com.bethibande.jsql.types.FinalType;
 import com.bethibande.jsql.types.SQLType;
 import com.bethibande.jsql.examples.Person;

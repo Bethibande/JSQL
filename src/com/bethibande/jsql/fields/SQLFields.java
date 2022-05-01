@@ -1,8 +1,10 @@
 package com.bethibande.jsql.fields;
 
 import com.bethibande.jsql.JSQL;
-import com.bethibande.jsql.SQLField;
 import com.bethibande.jsql.SQLObject;
+import com.bethibande.jsql.exceptions.DuplicateFieldException;
+import com.bethibande.jsql.fields.adapters.SQLTypeAdapter;
+import com.bethibande.jsql.fields.adapters.TypeTranslationParameters;
 import com.bethibande.jsql.types.FinalType;
 import com.bethibande.jsql.types.SQLType;
 
@@ -29,6 +31,10 @@ public class SQLFields {
             this.type = type;
             this.typeSize = typeSize;
             this.isKey = isKey;
+        }
+
+        public String getName() {
+            return field.getName();
         }
 
         public Field getField() {
@@ -60,8 +66,16 @@ public class SQLFields {
         Field[] fields = objClass.getDeclaredFields();
         LinkedList<SQLTypeAdapter> adapters = owner.getTypeAdapters();
 
+        if(SQLObject.class.isAssignableFrom(objClass.getSuperclass()) && objClass.getSuperclass() != SQLObject.class) {
+            generate((Class<? extends SQLObject>)objClass.getSuperclass(), owner);
+        }
+
         for(Field field : fields) {
             field.setAccessible(true);
+
+            if(this.fields.containsKey(field.getName())) {
+                throw new DuplicateFieldException("There already is a field with the name '" + field.getName() + "' registered from class '" + this.fields.get(field.getName()).getField().getDeclaringClass() + "'!");
+            }
 
             if (Modifier.isStatic(field.getModifiers())) continue;
 

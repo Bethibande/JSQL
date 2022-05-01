@@ -1,4 +1,4 @@
-package com.bethibande.jsql.fields;
+package com.bethibande.jsql.fields.adapters;
 
 import java.lang.reflect.Field;
 import java.sql.ResultSet;

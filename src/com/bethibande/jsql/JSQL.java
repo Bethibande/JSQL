@@ -1,7 +1,7 @@
 package com.bethibande.jsql;
 
 import com.bethibande.jsql.cache.CacheUpdateThread;
-import com.bethibande.jsql.fields.SQLTypeAdapter;
+import com.bethibande.jsql.fields.adapters.SQLTypeAdapter;
 import com.bethibande.jsql.fields.adapters.*;
 
 import java.sql.*;

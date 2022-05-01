@@ -1,6 +1,6 @@
 package com.bethibande.jsql.examples.adapters;
 
-import com.bethibande.jsql.SQLField;
+import com.bethibande.jsql.fields.SQLField;
 import com.bethibande.jsql.SQLObject;
 import com.bethibande.jsql.examples.Person;
 

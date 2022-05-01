@@ -1,6 +1,6 @@
 package com.bethibande.jsql.examples;
 
-import com.bethibande.jsql.SQLField;
+import com.bethibande.jsql.fields.SQLField;
 import com.bethibande.jsql.SQLObject;
 
 // TODO: remove redundant adult parameter in constructor
