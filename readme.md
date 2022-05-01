@@ -1,4 +1,4 @@
-# JSQL, a simple java mysql framework 1.3
+# JSQL, a simple java mysql framework 1.4
 This is just a very simple framework, that enables you to easily save and load your class instances from and to your mysql server
 Please note that I jsut started working on this project hence there isn't much here yet
 
@@ -19,10 +19,11 @@ By default JSQL can only save the following types, [save custom types](https://g
 A simple example can be found [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples) <br>
 An example showing how to save custom types is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/adapters) <br>
 A caching example can be found here [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/cache) <br>
-An example for using basic 'or' and 'and' queries is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/query/Main.java)
+An example for using basic 'or' and 'and' queries is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/query/Main.java) <br>
+An example for saving and loading abstract classes is [here](https://github.com/Bethibande/JSQL/tree/master/examples/src/com/bethibande/jsql/examples/abstractclasses/Main.java)
 
 ## Import
-Download latest build [here](https://github.com/Bethibande/maven-repos/blob/main/de/bethibande/jsql/1.3/jsql-1.3.jar)
+Download latest build [here](https://github.com/Bethibande/maven-repos/blob/main/de/bethibande/jsql/1.4/jsql-1.4.jar)
 ### Gradle
 ```gradle
 repositories {
@@ -32,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'de.bethibande:jsql:1.3'
+    implementation 'de.bethibande:jsql:1.4'
 }
 ```
 ### Maven
@@ -45,7 +46,7 @@ dependencies {
 <dependency>
     <groupId>de.bethibande</groupId>
     <artifactId>jsql</artifactId>
-    <version>1.3</version>
+    <version>1.4</version>
 </dependency>
 ```
 

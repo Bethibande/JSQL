@@ -21,7 +21,6 @@ public class Main {
         // this will turn the loaded object data into an object of a class which extends/implements the abstract class
         table.setAbstractClassFactory((data) -> {
             ClassType type = data.getEnum(ClassType.class, "type");
-            System.out.println(type);
 
             if(type == ClassType.STRING) return new AbstractClassImpl(data.getString("key"), data.getString("value"));
             if(type == ClassType.BOOLEAN) return new AbstractClassBooleanImpl(data.getString("key"), data.getBoolean("value"));
