@@ -18,7 +18,8 @@ public class ObjectAdapter implements SQLTypeAdapter {
     @Override
     public Object fromSQL(SQLTranslationParameters parameters) throws SQLException {
         if(parameters.getTargetType() == Object.class && parameters.getContainerClass() == AbstractClass.class) {
-            if(parameters.getAsString().matches("[0|1]")) return parameters.getAsString().equals("1");
+            if(parameters.getResultSet().getString("type").equals("BOOLEAN")) return parameters.getAsString().equals("1");
+
             return parameters.getAsString();
         }
         return null;
