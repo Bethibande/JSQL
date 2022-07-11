@@ -1,6 +1,8 @@
 package com.bethibande.jsql.fields.adapters;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -38,6 +40,18 @@ public class SQLTranslationParameters {
 
     public ResultSet getResultSet() {
         return resultSet;
+    }
+
+    public <T extends Enum<T>> T getAsEnum(Class<T> type) throws SQLException {
+        try {
+            String str = resultSet.getString(sqlField);
+
+            Method m = type.getDeclaredMethod("valueOf", String.class);
+            return (T) m.invoke(null, str);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public String getAsString() throws SQLException {

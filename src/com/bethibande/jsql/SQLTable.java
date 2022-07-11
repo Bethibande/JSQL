@@ -587,6 +587,13 @@ public class SQLTable<T extends SQLObject> {
     }
 
     /**
+     * Delete all items on this table
+     */
+    public void deleteAll() {
+        owner.update("delete from `" + table + "` where 1=1;");
+    }
+
+    /**
      * Get the jsql instance this table belongs to
      * @return the jsql instance
      */

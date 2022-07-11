@@ -3,6 +3,7 @@ package com.bethibande.jsql.fields.adapters;
 import com.bethibande.jsql.types.FinalType;
 import com.bethibande.jsql.types.SQLType;
 
+import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(type == short.class || type == Short.class) return FinalType.of(SQLType.SMALLINT, SQLType.SMALLINT.getDefaultSize());
         if(type == String.class) return FinalType.of(SQLType.VARCHAR, 64);
         if(type == UUID.class) return FinalType.of(SQLType.VARCHAR, 36);
+        if(type == InetSocketAddress.class) return FinalType.of(SQLType.VARCHAR, 32);
         return null;
     }
 
@@ -42,6 +44,7 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(type == short.class || type == Short.class) return parameters.getAsShort();
         if(type == String.class) return  parameters.getAsString();
         if(type == UUID.class) return  UUID.fromString(parameters.getAsString());
+        if(type == InetSocketAddress.class) return InetSocketAddress.createUnresolved(parameters.getAsString().split(":")[0], Integer.parseInt(parameters.getAsString().split(":")[1]));
 
         return null;
     }
@@ -61,6 +64,7 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(javaObj.getClass() == short.class || javaObj.getClass() == Short.class) return javaObj;
         if(javaObj.getClass() == String.class) return javaObj;
         if(javaObj.getClass() == UUID.class) return javaObj.toString();
+        if(javaObj.getClass() == InetSocketAddress.class) return javaObj.toString();
         return null;
     }
 
