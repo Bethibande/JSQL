@@ -1,9 +1,12 @@
 package com.bethibande.jsql.fields.adapters;
 
+import com.bethibande.jsql.SQLTable;
 import com.bethibande.jsql.types.FinalType;
 import com.bethibande.jsql.types.SQLType;
 
+import java.net.Inet4Address;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -25,7 +28,8 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(type == short.class || type == Short.class) return FinalType.of(SQLType.SMALLINT, SQLType.SMALLINT.getDefaultSize());
         if(type == String.class) return FinalType.of(SQLType.VARCHAR, 64);
         if(type == UUID.class) return FinalType.of(SQLType.VARCHAR, 36);
-        if(type == InetSocketAddress.class) return FinalType.of(SQLType.VARCHAR, 32);
+        if(type == InetSocketAddress.class) return FinalType.of(SQLType.VARCHAR, SQLType.VARCHAR.getDefaultSize());
+        if(type == Inet4Address.class) return FinalType.of(SQLType.VARCHAR, SQLType.VARCHAR.getDefaultSize());
         return null;
     }
 
@@ -45,6 +49,13 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(type == String.class) return  parameters.getAsString();
         if(type == UUID.class) return  UUID.fromString(parameters.getAsString());
         if(type == InetSocketAddress.class) return InetSocketAddress.createUnresolved(parameters.getAsString().split(":")[0], Integer.parseInt(parameters.getAsString().split(":")[1]));
+        if(type == Inet4Address.class) {
+            try {
+                return Inet4Address.getByName(parameters.getAsString());
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         return null;
     }
@@ -65,6 +76,7 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(javaObj.getClass() == String.class) return javaObj;
         if(javaObj.getClass() == UUID.class) return javaObj.toString();
         if(javaObj.getClass() == InetSocketAddress.class) return javaObj.toString();
+        if(javaObj.getClass() == Inet4Address.class) return javaObj.toString();
         return null;
     }
 

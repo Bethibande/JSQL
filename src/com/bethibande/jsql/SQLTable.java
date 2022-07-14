@@ -554,6 +554,34 @@ public class SQLTable<T extends SQLObject> {
     }
 
     /**
+     * Same method as getAllKeys();
+     * @see #getAllKeys()
+     * @return a list of all keys in your sql table
+     */
+    public List<Object> listAllKeys() {
+        return getAllKeys();
+    }
+
+    /**
+     * Get *all* key values from your sql table. <br>
+     * @return a list of all keys in your sql table
+     */
+    public List<Object> getAllKeys() {
+        List<Object> obj = new ArrayList<>();
+
+        ResultSet rs = owner.query("select `" + getFields().getKeyValue() + "` from `" + table + "` where 1=1;");
+        try {
+            while (rs.next()) {
+                obj.add(sqlValueToJava(fields.getKeyValue(), rs));
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+
+        return obj;
+    }
+
+    /**
      * Get item from your sql table as SQLDataObject, this method will be used to load items if the class saved in this table is an abstract class.
      * This method will not create an instance of the specified class of this table <br>
      * and will also not save items in cache, if you have cache enabled.
@@ -591,6 +619,13 @@ public class SQLTable<T extends SQLObject> {
      */
     public void deleteAll() {
         owner.update("delete from `" + table + "` where 1=1;");
+    }
+
+    /**
+     * !!! Beware, this method will delete your sql table and all of its content !!!
+     */
+    public void dropTable() {
+        owner.update("drop table `" + table + "`;");
     }
 
     /**
