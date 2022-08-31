@@ -336,7 +336,7 @@ public class JSQL {
             System.err.println("[JSQL Error] Couldn't connect to mysql server, username/password or hostAddress not set!");
         }
 
-        if(hasAdapterOfType(DefaultAdapter.class)) this.registerDefaultAdapters();
+        if(!hasAdapterOfType(DefaultAdapter.class)) this.registerDefaultAdapters();
 
         Properties connectionProps = new Properties();
         connectionProps.put("user", this.username);
