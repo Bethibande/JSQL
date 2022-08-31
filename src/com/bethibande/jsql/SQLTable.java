@@ -450,6 +450,7 @@ public class SQLTable<T extends SQLObject> {
      * @param value the java value, type must be the same as the type of the field
      * @return the type which will be saved in your mysql table, string, int, boolean [...], may be null
      */
+    // TODO: add @NotNull annotation to parameters
     public Object javaValueToSQL(String field, Object value) {
         List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
         SQLFields.SimpleField f = this.fields.getFields().get(field);
@@ -463,7 +464,7 @@ public class SQLTable<T extends SQLObject> {
             if (temp != null) obj = temp;
         }
 
-        if(obj.getClass().isEnum()) obj = obj.toString();
+        if(obj != null && obj.getClass().isEnum()) obj = obj.toString();
 
         return obj;
     }
@@ -572,7 +573,7 @@ public class SQLTable<T extends SQLObject> {
         ResultSet rs = owner.query("select `" + getFields().getKeyValue() + "` from `" + table + "` where 1=1;");
         try {
             while (rs.next()) {
-                obj.add(sqlValueToJava(fields.getKeyValue(), rs));
+                obj.add(sqlValueToJava(getFields().getKeyValue(), rs));
             }
         } catch(SQLException e) {
             e.printStackTrace();

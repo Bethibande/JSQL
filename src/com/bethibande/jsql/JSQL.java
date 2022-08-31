@@ -319,6 +319,15 @@ public class JSQL {
     }
 
     /**
+     * Checks whether there is a registered type adapter of a certain type
+     * @param type your type adapter class
+     * @return returns true if your type adapter class has already been registered
+     */
+    public boolean hasAdapterOfType(Class<? extends SQLTypeAdapter> type) {
+        return adapters.stream().anyMatch(adapter -> adapter.getClass() == type);
+    }
+
+    /**
      * Connect to the mysql server, will connect to the datbase if database has been set using JSQL.database(...);
      * @return true if connected successfully, false if not
      */
@@ -327,7 +336,7 @@ public class JSQL {
             System.err.println("[JSQL Error] Couldn't connect to mysql server, username/password or hostAddress not set!");
         }
 
-        if(this.adapters.isEmpty()) this.registerDefaultAdapters();
+        if(hasAdapterOfType(DefaultAdapter.class)) this.registerDefaultAdapters();
 
         Properties connectionProps = new Properties();
         connectionProps.put("user", this.username);

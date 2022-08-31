@@ -4,7 +4,7 @@ public enum SQLType {
 
     AUTO_DETECT(-1, -1, -1, null),
     CHAR(1, 255, 0, "CHAR"),
-    VARCHAR(32, 65535, 0, "VARCHAR"),
+    VARCHAR(32, 16383, 0, "VARCHAR"),
     TINYBLOB(32, 255, 0, "TINYBLOB"),
     TINYTEXT(32, 255, 0, "TINYTEXT"),
     TEXT(32, 65535, 0, "TEXT"),

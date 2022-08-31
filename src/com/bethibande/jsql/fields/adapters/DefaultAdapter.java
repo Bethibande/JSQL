@@ -51,7 +51,7 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(type == InetSocketAddress.class) return InetSocketAddress.createUnresolved(parameters.getAsString().split(":")[0], Integer.parseInt(parameters.getAsString().split(":")[1]));
         if(type == Inet4Address.class) {
             try {
-                return Inet4Address.getByName(parameters.getAsString());
+                return Inet4Address.getByName(parameters.getAsString().replaceAll("/", ""));
             } catch (UnknownHostException e) {
                 throw new RuntimeException(e);
             }
@@ -75,8 +75,8 @@ public class DefaultAdapter implements SQLTypeAdapter {
         if(javaObj.getClass() == short.class || javaObj.getClass() == Short.class) return javaObj;
         if(javaObj.getClass() == String.class) return javaObj;
         if(javaObj.getClass() == UUID.class) return javaObj.toString();
-        if(javaObj.getClass() == InetSocketAddress.class) return javaObj.toString();
-        if(javaObj.getClass() == Inet4Address.class) return javaObj.toString();
+        if(javaObj.getClass() == InetSocketAddress.class) return javaObj.toString().replaceAll("/", "");
+        if(javaObj.getClass() == Inet4Address.class) return javaObj.toString().replace("/", "");
         return null;
     }
 
