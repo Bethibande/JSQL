@@ -411,6 +411,7 @@ public class SQLTable<T extends SQLObject> {
      * @param rs the mysql ResultSet you want to load an object from
      * @return the java Object, may be null
      */
+    @Deprecated(forRemoval = true)
     public Object sqlValueToJava(String field, ResultSet rs) {
         List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
         SQLFields.SimpleField f = this.fields.getFields().get(field);
@@ -451,6 +452,7 @@ public class SQLTable<T extends SQLObject> {
      * @return the type which will be saved in your mysql table, string, int, boolean [...], may be null
      */
     // TODO: add @NotNull annotation to parameters
+    @Deprecated(forRemoval = true)
     public Object javaValueToSQL(String field, Object value) {
         List<SQLTypeAdapter> adapters = this.owner.getTypeAdapters();
         SQLFields.SimpleField f = this.fields.getFields().get(field);

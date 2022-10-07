@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ClassUtils {
 
+    // TODO: deal with @NonNull values
     public static <T> T createClassInstance(Class<T> clazz) {
         Constructor<?> con = clazz.getDeclaredConstructors()[0];
         Class<?>[] types = con.getParameterTypes();
